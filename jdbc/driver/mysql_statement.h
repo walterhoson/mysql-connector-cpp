@@ -71,9 +71,13 @@ protected:
 
  uint64_t last_update_count;
 
+ uint64_t update_matched_count;
+
  std::shared_ptr<MySQL_DebugLogger> logger;
 
  sql::ResultSet::enum_type resultset_type;
+
+ sql::ReturnRowType::row_type return_row_type;
 
  unsigned int warningsCount;
 
@@ -118,6 +122,8 @@ public:
 
  uint64_t getUpdateCount() override;
 
+ uint64_t getMatchedRowCount() override;
+
  const SQLWarning *getWarnings() override; /* should return differen type */
 
  Statement *setBuffered();
@@ -135,6 +141,12 @@ public:
  void setQueryTimeout(unsigned int seconds) override;
 
  sql::Statement *setResultSetType(sql::ResultSet::enum_type type) override;
+
+ void setReturnRowType(sql::ReturnRowType::row_type type) override;
+
+ sql::ReturnRowType::row_type getReturnRowType() override;
+
+ void getMatchCount(const sql::SQLString& sql);
 
  int setQueryAttrBigInt(const sql::SQLString &name,
                         const sql::SQLString &value) override;

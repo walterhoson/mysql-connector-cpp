@@ -1734,7 +1734,7 @@ MySQL_Connection::prepareStatement(const sql::SQLString& sql)
     throw e;
   }
 
-  return new MySQL_Prepared_Statement(stmt, this, intern->defaultPreparedStatementResultType, intern->logger);
+  return new MySQL_Prepared_Statement(stmt, this, intern->defaultPreparedStatementResultType, intern->defaultReturnRowType, intern->logger);
 }
 /* }}} */
 

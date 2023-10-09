@@ -30,21 +30,39 @@
 
 #include <iostream>
 #include <mysql/jdbc.h>
+#include <iostream>
+#include <cppconn/driver.h>
+#include <cppconn/connection.h>
+#include <cppconn/statement.h>
 
 
 using ::std::cout;
 using ::std::endl;
 
+using namespace std;
 
-int main()
-try {
-  cout << "Done!" << endl;
-}
-catch (std::exception &ex)
-{
-  cout <<"STD EXCEPTION: " <<ex.what() <<endl;
-}
-catch (const char *ex)
-{
-  cout <<"EXCEPTION: " <<ex <<endl;
+int main() {
+
+    //创建一个MySQL连接对象
+    sql::Driver* driver = get_driver_instance();
+    sql::Connection* conn = driver->connect("tcp://127.0.0.1:3306", "root","");
+
+    //通过连接对象创建一个MySQL-connector-C++的Statement对象
+    sql::Statement* stmt = conn->createStatement();
+
+    //设置返回值类型为匹配行数和生效行数
+    stmt->setReturnRowType(sql::ReturnRowType::RETURN_ROW_MATCHED);
+
+    // 执行update语句
+    stmt->executeUpdate("UPDATE demo.test SET name='wayne1' WHERE id in (1,2)");
+
+    //获取返回值
+    cout << "affected " << stmt->getUpdateCount() << " rows " << endl;
+    cout << "matched " << stmt->getMatchedRowCount() << " rows " << endl;
+
+    //释放资源
+    delete stmt;
+    delete conn;
+
+    return 0;
 }

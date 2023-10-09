@@ -61,6 +61,7 @@ struct MySQL_ConnectionData
         defaultStatementResultType(sql::ResultSet::TYPE_SCROLL_INSENSITIVE),
         defaultPreparedStatementResultType(
             sql::ResultSet::TYPE_SCROLL_INSENSITIVE),
+        defaultReturnRowType(sql::ReturnRowType::RETURN_ROW_AFFECTED),
         logger(l) {}
 
   ~MySQL_ConnectionData()
@@ -82,6 +83,8 @@ struct MySQL_ConnectionData
 
   sql::ResultSet::enum_type defaultStatementResultType;
   sql::ResultSet::enum_type defaultPreparedStatementResultType;
+
+  sql::ReturnRowType::row_type defaultReturnRowType;
 
   std::shared_ptr<MySQL_DebugLogger> logger;
 

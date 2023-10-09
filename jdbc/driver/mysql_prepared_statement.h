@@ -80,6 +80,8 @@ protected:
 
   sql::ResultSet::enum_type resultset_type;
 
+  sql::ReturnRowType::row_type return_row_type;
+
   std::shared_ptr<MySQL_ResultBind> result_bind;
 
   unsigned int warningsCount;
@@ -94,6 +96,7 @@ public:
  MySQL_Prepared_Statement(std::shared_ptr<NativeAPI::NativeStatementWrapper> &s,
                           MySQL_Connection *conn,
                           sql::ResultSet::enum_type rset_type,
+                          sql::ReturnRowType::row_type return_row_type,
                           std::shared_ptr<MySQL_DebugLogger> &log);
  virtual ~MySQL_Prepared_Statement();
 
@@ -135,6 +138,8 @@ public:
  sql::ResultSet::enum_type getResultSetType() override;
 
  uint64_t getUpdateCount() override;
+
+ uint64_t getMatchedRowCount() override;
 
  const SQLWarning *getWarnings() override; /* should return different type */
 
@@ -181,6 +186,10 @@ public:
 
  sql::PreparedStatement *setResultSetType(
      sql::ResultSet::enum_type type) override;
+
+ void setReturnRowType(sql::ReturnRowType::row_type type) override;
+
+ sql::ReturnRowType::row_type getReturnRowType() override;
 
  int setQueryAttrBigInt(const sql::SQLString &name,
                         const sql::SQLString &value) override;

@@ -183,6 +183,16 @@ public:
   virtual bool wasNull() const = 0;
 };
 
+class ReturnRowType
+{
+public:
+    typedef enum
+    {
+        RETURN_ROW_MATCHED,
+        RETURN_ROW_AFFECTED
+    } row_type;
+};
+
 } /* namespace sql */
 
 #endif /* _SQL_RESULTSET_H_ */

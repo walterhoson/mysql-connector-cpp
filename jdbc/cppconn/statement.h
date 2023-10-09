@@ -44,7 +44,7 @@ namespace sql
 class ResultSet;
 class Connection;
 class SQLWarning;
-
+class ReturnRowType;
 
 class Statement
 {
@@ -81,6 +81,8 @@ public:
 
   virtual uint64_t getUpdateCount() = 0;
 
+  virtual uint64_t getMatchedRowCount() = 0;
+
   virtual const SQLWarning * getWarnings() = 0;
 
   virtual void setCursorName(const sql::SQLString & name) = 0;
@@ -96,6 +98,10 @@ public:
   virtual void setQueryTimeout(unsigned int seconds) = 0;
 
   virtual Statement * setResultSetType(sql::ResultSet::enum_type type) = 0;
+
+  virtual void setReturnRowType(sql::ReturnRowType::row_type type) = 0;
+
+  virtual sql::ReturnRowType::row_type getReturnRowType() = 0;
 
   virtual int setQueryAttrBigInt(const sql::SQLString &name, const sql::SQLString& value) = 0;
   virtual int setQueryAttrBoolean(const sql::SQLString &name, bool value) = 0;

@@ -34,7 +34,7 @@
 #include <algorithm>
 #include <sstream>
 #include <cstring>
-
+#include <iostream>
 
 /*
  * mysql_util.h includes private_iface, ie libmysql headers. and they must go
@@ -230,6 +230,8 @@ MySQL_Statement::executeUpdate(const sql::SQLString& sql)
   CPP_INFO_FMT("query=%s", sql.c_str());
   checkClosed();
 
+  getMatchCount(sql);
+
   do_query(sql);
 
   bool got_rs= false;
@@ -273,6 +275,38 @@ MySQL_Statement::executeUpdate(const sql::SQLString& sql)
   return 0;
 }
 /* }}} */
+
+
+void
+MySQL_Statement::getMatchCount(const sql::SQLString& sql)
+{
+    // 判断update语句是否需要拿到匹配行数，是则前置进行一次查询
+    std::size_t updatePos = sql.find("UPDATE");
+    std::size_t setPos = sql.find("SET");
+
+    if (return_row_type != sql::ReturnRowType::row_type::RETURN_ROW_MATCHED) {
+        return;
+    }
+    // 这里简单做一下where条件后面的解析，找出 UPDATE 与 SET 之间的作为表名
+    if (updatePos != std::string::npos && setPos != std::string::npos) {
+        std::string tableName = sql.substr(updatePos + 6, setPos - updatePos - 6);
+        std::size_t wherePos = sql.find("WHERE");
+        if (wherePos != std::string::npos) {
+            std::string whereClause = sql.substr(wherePos + 5); // Extract the WHERE clause (not including "WHERE")
+            std::string sql_select = "SELECT COUNT(1) FROM " + tableName + " WHERE " + whereClause;
+            ResultSet *pSet=executeQuery(sql_select);
+            int matchRows;
+            while(pSet->next()){
+                matchRows = pSet->getInt(1);
+            }
+            update_matched_count = matchRows;
+        } else {
+            // TODO 造成全表查
+        }
+    } else {
+        // FIXME 抛出异常
+    }
+}
 
 
 /* {{{ MySQL_Statement::getConnection() -I- */
@@ -521,6 +555,22 @@ MySQL_Statement::getUpdateCount()
 }
 /* }}} */
 
+uint64_t
+MySQL_Statement::getMatchedRowCount()
+{
+  CPP_ENTER("MySQL_Statement::getMatchedRowCount");
+  checkClosed();
+  if (return_row_type == sql::ReturnRowType::row_type::RETURN_ROW_MATCHED) {
+      // 获取匹配行数
+      if (update_matched_count == UL64(~0)) {
+          return UL64(~0);
+      }
+      uint64_t ret = update_matched_count;
+      update_matched_count = UL64(~0); /* the value will be returned once per result set */
+      return ret;
+  }
+  return getUpdateCount();
+}
 
 /* {{{ MySQL_Statement::getWarnings() -I- */
 const SQLWarning *
@@ -591,6 +641,22 @@ MySQL_Statement::setResultSetType(sql::ResultSet::enum_type type)
 }
 /* }}} */
 
+/* {{{ MySQL_Statement::setReturnRowType() -I- */
+void
+MySQL_Statement::setReturnRowType(sql::ReturnRowType::row_type type)
+{
+  checkClosed();
+  return_row_type = type;
+}
+/* }}} */
+
+sql::ReturnRowType::row_type
+MySQL_Statement::getReturnRowType()
+{
+  CPP_ENTER("MySQL_Statement::getReturnRowType");
+  checkClosed();
+  return return_row_type;
+}
 
 /* {{{ MySQL_Statement::setQueryAttrBigInt() -U- */
 int

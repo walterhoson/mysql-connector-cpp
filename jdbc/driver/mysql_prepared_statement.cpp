@@ -356,6 +356,7 @@ public:
 MySQL_Prepared_Statement::MySQL_Prepared_Statement(
     std::shared_ptr<NativeAPI::NativeStatementWrapper> &s,
     MySQL_Connection *conn, sql::ResultSet::enum_type rset_type,
+    sql::ReturnRowType::row_type return_row_type,
     std::shared_ptr<MySQL_DebugLogger> &log)
     : connection(conn),
       proxy(s),
@@ -363,6 +364,7 @@ MySQL_Prepared_Statement::MySQL_Prepared_Statement(
       warningsHaveBeenLoaded(true),
       logger(log),
       resultset_type(rset_type),
+      return_row_type(return_row_type),
       result_bind(new MySQL_ResultBind(proxy, logger)),
       warningsCount(0)
 
@@ -1190,6 +1192,13 @@ MySQL_Prepared_Statement::getUpdateCount()
 }
 /* }}} */
 
+uint64_t
+MySQL_Prepared_Statement::getMatchedRowCount()
+{
+  checkClosed();
+  throw MethodNotImplementedException("MySQL_Prepared_Statement::getMatchedRowCount");
+  return 0; // fool compilers
+}
 
 /* {{{ MySQL_Prepared_Statement::getWarnings() -I- */
 const SQLWarning *
@@ -1276,6 +1285,25 @@ MySQL_Prepared_Statement::setResultSetType(sql::ResultSet::enum_type /* type */)
 }
 /* }}} */
 
+
+void MySQL_Prepared_Statement::setReturnRowType(sql::ReturnRowType::row_type type)
+{
+    checkClosed();
+#if WE_SUPPORT_USE_RESULT_WITH_PS
+    /* The connector is not ready for unbuffered as we need to refetch */
+  return_row_type = type;
+#else
+  throw MethodNotImplementedException("MySQL_Prepared_Statement::setReturnRowType");
+#endif
+}
+
+sql::ReturnRowType::row_type
+MySQL_Prepared_Statement::getReturnRowType()
+{
+  CPP_ENTER("MySQL_Statement::getReturnRowType");
+  checkClosed();
+  return return_row_type;
+}
 
 /* {{{ MySQL_Prepared_Statement::setQueryAttrBigInt() -U- */
 int
